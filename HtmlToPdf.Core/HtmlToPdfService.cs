@@ -1,20 +1,22 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using MustacheCs;
+using Newtonsoft.Json;
 
 namespace HtmlToPdf.Core
 {
     /// <summary>
     /// Сервис преоброзования HTML в PDF
     /// </summary>
-    public class HtmlToPdfService
+    public class HtmlToPdfService : IDisposable
     {
         private static string _appPath;
         private static string _phantomjsPath;
         private static string _htmlToPdfPath;
-        private static string _outputPath;
+        private Process process;
 
         static HtmlToPdfService()
         {
@@ -22,7 +24,22 @@ namespace HtmlToPdf.Core
             _appPath = Path.GetDirectoryName(codeBase).Replace(@"file:\", "");
             _phantomjsPath = Path.Combine(_appPath, "phantomjs.exe");
             _htmlToPdfPath = Path.Combine(_appPath, "HtmlToPdf.js");
-            _outputPath = Path.Combine(_appPath, "stdout.pdf");
+        }
+
+        public HtmlToPdfService()
+        {
+            var args = new object[] {_htmlToPdfPath}
+                .Select(p => "\"" + p + "\"")
+                .Aggregate("", (p1, p2) => p1 + " " + p2);
+            var info = new ProcessStartInfo(_phantomjsPath, args)
+            {
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                //RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            process = Process.Start(info);
         }
 
         /// <summary>
@@ -31,38 +48,47 @@ namespace HtmlToPdf.Core
         /// <param name="template">Шаблон</param>
         /// <param name="vm"></param>
         /// <returns>Готовый шаблон</returns>
-        public string Render(string template, object vm = null)
+        public static string Render(string template, object vm = null)
         {
-            var view = Mustache.render(template, vm);
-            return view;
+            var content = Mustache.render(template, vm);
+            return content;
         }
 
         /// <summary>
         /// Сконвертировать готовый шаблон в PDF
         /// </summary>
-        /// <param name="view">Готовый шаблон</param>
+        /// <param name="content">Готовый шаблон</param>
         /// <returns>PDF</returns>
-        public byte[] Convert(string view)
+        public byte[] Convert(string content)
         {
-            //http://www.lucidmotions.net/2014/05/csharp-javascript-phantomjs-screenshots.html неработает =(
-            var args = new object[] {_htmlToPdfPath, view};
-            var info = new ProcessStartInfo(_phantomjsPath,
-                string.Join(" ", string.Join(" ", args.Select(p => "\"" + p + "\""))))
+            var name = Guid.NewGuid().ToString("N");
+            var json = JsonConvert.SerializeObject(new
             {
-                //RedirectStandardInput = true,
-                //RedirectStandardOutput = true,
-                //RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using (var process = new Process {StartInfo = info})
+                content,
+                name
+            });
+            process.StandardInput.WriteLine(json);
+
+            //ожидание выполнения
+            var stdout = process.StandardOutput.ReadLine();
+            switch (stdout)
             {
-                process.Start();
-                //var error = process.StandardError.ReadToEnd();
-                //var stdout = process.StandardOutput.ReadToEnd(); //приходит пустой пдф =(
-                process.WaitForExit();
+                case "converted":
+                {
+                    var path = Path.Combine(_appPath, name + ".pdf");
+                    var bytes = File.ReadAllBytes(path);
+                    File.Delete(path);
+                    return bytes;
+                }
+                case "empty":
+                {
+                    return new byte[] {};
+                }
+                default:
+                {
+                    throw new NotImplementedException(stdout);
+                }
             }
-            return File.ReadAllBytes(_outputPath);
         }
 
         /// <summary>
@@ -73,9 +99,34 @@ namespace HtmlToPdf.Core
         /// <returns>PDF</returns>
         public byte[] Convert(string template, object vm)
         {
-            var view = Render(template, vm);
-            var pdf = Convert(view);
-            return pdf;
+            var content = Render(template, vm);
+            var bytes = Convert(content);
+            return bytes;
+        }
+
+        public void Dispose()
+        {
+            if (process == null) return;
+            process.StandardInput.WriteLine("exit");
+            var stdout = process.StandardOutput.ReadLine();
+            switch (stdout)
+            {
+                case "exit":
+                {
+                    process.WaitForExit();
+                    process.Close();
+                    process.Dispose();
+                    process = null;
+                    break;
+                }
+                default:
+                {
+                    process.Close();
+                    process.Dispose();
+                    process = null;
+                    throw new NotImplementedException(stdout);
+                }
+            }
         }
     }
 }

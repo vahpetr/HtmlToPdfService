@@ -1,4 +1,4 @@
-﻿namespace HtmlToPdf.Core.Tests.Fixtures
+﻿namespace HtmlToPdf.Core.Tests.ViewModels
 {
     public class ViewModel
     {

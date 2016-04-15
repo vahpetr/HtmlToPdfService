@@ -7,9 +7,11 @@ namespace HtmlToPdf.Cli
     {
         static void Main(string[] args)
         {
-            var service = new HtmlToPdfService();
-            var pdf = service.Convert(args[0]);
-            File.WriteAllBytes("result.pdf", pdf);
+            using (var service = new HtmlToPdfService())
+            {
+                var pdf = service.Convert(args[0]);
+                File.WriteAllBytes("result.pdf", pdf);
+            }
         }
     }
 }
