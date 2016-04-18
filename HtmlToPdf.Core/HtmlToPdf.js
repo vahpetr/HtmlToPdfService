@@ -1,18 +1,53 @@
-﻿var page = require('webpage').create(), system = require('system');
+﻿var system = require('system');
+var webpage = require('webpage');
+
+var page = webpage.create();
 
 //page.viewportSize = { width: 600, height: 600 };
-//page.paperSize = { format: 'A4', orientation: 'portrait' };//, margin: '1cm'
-var dpi = 72.0, dpcm = dpi/2.54;
+//page.paperSize = { format: 'A4', orientation: 'portrait', margin: '1cm' };
+
+var dpi = 72.0, dpcm = dpi / 2.54;
 var widthCm = 21.0, heightCm = 29.7; // A4
 page.viewportSize = { width: Math.round(widthCm * dpcm), height: Math.round(heightCm * dpcm) };
-page.paperSize = { width: page.viewportSize.width + 'px', height: page.viewportSize.height + 'px', orientation: 'portrait', margin: '0px' };//1cm
+page.paperSize = { width: page.viewportSize.width + 'px', height: page.viewportSize.height + 'px', orientation: 'portrait', margin: '0px' };//, margin: '1cm'
 page.settings.dpi = dpi;
 page.zoomFactor = 1.0;
 
-page.content = system.args[1];
+var line, params;
+function input() {
+    line = system.stdin.readLine();
 
-//http://stackoverflow.hex1.ru/questions/19512983/phantomjs-pdf-to-stdout/21185279
-//page.render('/dev/stdout', { format: 'pdf' });
-page.render('stdout.pdf');
+    switch (line) {
+        case 'exit': {
+            console.log('exit');
+            phantom.exit();
+            break;
+        }
+        case '': {
+            console.log('empty');
+            input();
+            break;
+        }
+        default:
+            {
+            try {
+                params = JSON.parse(line);
+                page.content = params.content;
 
-phantom.exit();
+                page.render(params.name + '.pdf');
+                //page.render('/dev/stdout', { format: 'pdf' });
+                //page.render('\\\\.\\CON', { format: 'pdf' });
+                //page.renderPdf('/dev/stdout');
+
+                console.log('converted');
+            } catch (ex) {
+                console.log(ex);
+            } 
+
+            input();
+            break;
+        }
+    }
+}
+
+input();

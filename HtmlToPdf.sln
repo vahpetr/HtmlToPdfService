@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{BD92DD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlToPdf.Core.Tests", "HtmlToPdf.Core.Tests\HtmlToPdf.Core.Tests.csproj", "{2710C516-B7B0-4E4B-B172-CB993BC92BF9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HtmlToPdf.Cli", "HtmlToPdf.Cli\HtmlToPdf.Cli.csproj", "{1991941D-C8C9-4BC4-BAA3-22001F71C4B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,6 +30,10 @@ Global
 		{2710C516-B7B0-4E4B-B172-CB993BC92BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2710C516-B7B0-4E4B-B172-CB993BC92BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2710C516-B7B0-4E4B-B172-CB993BC92BF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1991941D-C8C9-4BC4-BAA3-22001F71C4B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1991941D-C8C9-4BC4-BAA3-22001F71C4B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1991941D-C8C9-4BC4-BAA3-22001F71C4B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1991941D-C8C9-4BC4-BAA3-22001F71C4B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
